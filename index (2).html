@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Cue 챌린지</title>
+
+<!-- ===== 카카오톡 공유 미리보기(OG) ===== -->
+<meta property="og:title" content="친구가 약속을 걸었어요 🎯" />
+<meta property="og:description" content="지금 몇 일 했는지 실시간으로 보기 — Cue 챌린지" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://elckub.github.io/cue-challenge/og.png" />
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+  /* =========================================================
+     CONFIG — 배포할 때 여기만 채우면 됩니다
+     ========================================================= */
+  /* (JS 맨 아래 CONFIG 객체 참고) */
+
+  :root{
+    --bg:#0a0710;
+    --bg2:#120b1d;
+    --card:#16101f;
+    --card-edge:#241733;
+    --violet:#a855f7;
+    --violet-soft:#c084fc;
+    --violet-deep:#7c3aed;
+    --text:#f4eefb;
+    --muted:#9a8fae;
+    --green:#34d399;
+    --red:#fb6f6f;
+    --gold:#fcd34d;
+    --shadow:0 30px 80px -20px rgba(124,58,237,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Pretendard',-apple-system,sans-serif;
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(124,58,237,.28), transparent 60%),
+      radial-gradient(600px 400px at 90% 100%, rgba(168,85,247,.12), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+    overflow-x:hidden;
+  }
+
+  /* grain texture */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{width:100%;max-width:440px;position:relative;z-index:1;}
+
+  .brand{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    font-weight:800;letter-spacing:-.5px;font-size:15px;color:var(--violet-soft);
+    margin-bottom:18px;opacity:0;animation:fadeDown .6s .05s forwards;
+  }
+  .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 12px var(--violet);}
+
+  .card{
+    background:linear-gradient(180deg,var(--card),var(--bg2));
+    border:1px solid var(--card-edge);
+    border-radius:28px;
+    padding:30px 24px 26px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+    opacity:0;transform:translateY(16px) scale(.98);
+    animation:rise .7s .12s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  /* top status ribbon */
+  .ribbon{
+    position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,var(--violet-deep),var(--violet),var(--violet-soft));
+    background-size:200% 100%;animation:slide 3s linear infinite;
+  }
+  .card.win .ribbon{background:linear-gradient(90deg,#059669,var(--green),#a7f3d0);}
+  .card.lose .ribbon{background:linear-gradient(90deg,#b91c1c,var(--red),#fecaca);}
+
+  .who{display:flex;align-items:center;gap:13px;margin-bottom:22px;}
+  .avatar{
+    width:52px;height:52px;border-radius:16px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;font-weight:800;
+    background:linear-gradient(145deg,var(--violet-deep),var(--violet));
+    box-shadow:0 8px 24px -6px rgba(168,85,247,.6);
+  }
+  .who h1{font-size:18px;font-weight:800;letter-spacing:-.4px;line-height:1.25;}
+  .who p{font-size:12.5px;color:var(--muted);margin-top:3px;}
+  .live{
+    display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+    color:var(--violet-soft);
+  }
+  .live .pulse{width:6px;height:6px;border-radius:50%;background:var(--violet);animation:pulse 1.4s infinite;}
+
+  .stake{
+    background:rgba(124,58,237,.10);
+    border:1px solid rgba(168,85,247,.22);
+    border-radius:16px;padding:15px 16px;margin-bottom:24px;
+    font-size:14.5px;line-height:1.5;font-weight:600;
+  }
+  .stake b{color:var(--violet-soft);font-weight:800;}
+
+  /* progress hero */
+  .hero{text-align:center;margin-bottom:8px;}
+  .count{font-size:64px;font-weight:900;letter-spacing:-3px;line-height:1;
+    background:linear-gradient(180deg,#fff,var(--violet-soft));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .count .of{font-size:30px;color:var(--muted);-webkit-text-fill-color:var(--muted);font-weight:800;}
+  .count-label{font-size:13px;color:var(--muted);margin-top:8px;font-weight:600;}
+
+  .bar{margin:22px 0 6px;}
+  .track{height:14px;border-radius:10px;background:#241733;overflow:hidden;position:relative;}
+  .fill{height:100%;width:0;border-radius:10px;
+    background:linear-gradient(90deg,var(--violet-deep),var(--violet-soft));
+    box-shadow:0 0 18px rgba(168,85,247,.7);
+    transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
+  .card.win .fill{background:linear-gradient(90deg,#059669,#6ee7b7);box-shadow:0 0 18px rgba(52,211,153,.7);}
+  .card.lose .fill{background:linear-gradient(90deg,#b91c1c,#fb6f6f);box-shadow:0 0 18px rgba(251,111,111,.6);}
+  .ticks{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted);font-weight:600;}
+
+  /* countdown */
+  .timer{
+    display:flex;justify-content:center;gap:8px;margin-top:22px;
+  }
+  .seg{background:#1d1329;border:1px solid var(--card-edge);border-radius:12px;
+    padding:10px 0;width:64px;text-align:center;}
+  .seg .num{font-size:22px;font-weight:900;letter-spacing:-1px;}
+  .seg .unit{font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:600;}
+  .timer-label{text-align:center;font-size:12px;color:var(--muted);margin-top:14px;font-weight:600;}
+
+  /* result banner */
+  .result{text-align:center;padding:6px 0 2px;}
+  .result .big{font-size:40px;font-weight:900;letter-spacing:-1.5px;margin-bottom:6px;}
+  .card.win .result .big{color:var(--green);}
+  .card.lose .result .big{color:var(--red);}
+  .result .sub{font-size:14.5px;color:var(--muted);line-height:1.55;font-weight:600;}
+  .result .sub b{color:var(--text);font-weight:800;}
+
+  /* CTA */
+  .cta{
+    display:block;width:100%;margin-top:24px;padding:16px;border:none;
+    border-radius:16px;font-family:inherit;font-size:15.5px;font-weight:800;
+    color:#fff;cursor:pointer;letter-spacing:-.3px;
+    background:linear-gradient(135deg,var(--violet-deep),var(--violet));
+    box-shadow:0 14px 30px -10px rgba(124,58,237,.8);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .cta:active{transform:translateY(1px) scale(.99);}
+  .cta.soon{background:#1d1329;color:var(--muted);border:1px solid var(--card-edge);box-shadow:none;cursor:default;}
+  .foot{text-align:center;font-size:11.5px;color:var(--muted);margin-top:16px;line-height:1.5;}
+
+  /* 인증 일지 */
+  .logs{margin-top:24px;border-top:1px solid var(--card-edge);padding-top:18px;}
+  .logs-h{font-size:13px;font-weight:800;color:var(--violet-soft);margin-bottom:12px;letter-spacing:-.3px;}
+  .log-row{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(36,23,51,.6);}
+  .log-row:last-child{border-bottom:none;}
+  .log-date{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--violet-soft);
+    background:rgba(124,58,237,.14);border-radius:8px;padding:3px 8px;min-width:42px;text-align:center;}
+  .log-note{font-size:13.5px;color:var(--text);line-height:1.45;font-weight:500;padding-top:1px;}
+  .log-note i{color:var(--muted);font-style:normal;}
+
+  /* loading / error */
+  .state-msg{text-align:center;padding:40px 10px;color:var(--muted);font-weight:600;}
+  .spinner{width:34px;height:34px;border:3px solid #241733;border-top-color:var(--violet);
+    border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite;}
+
+  /* confetti */
+  .confetti{position:absolute;top:-10px;width:9px;height:14px;opacity:0;border-radius:2px;}
+
+  /* demo switcher */
+  .demo-bar{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap;opacity:0;animation:fadeDown .6s .4s forwards;}
+  .demo-bar span{font-size:11px;color:var(--muted);align-self:center;margin-right:2px;font-weight:600;}
+  .demo-bar button{
+    font-family:inherit;font-size:12px;font-weight:700;color:var(--violet-soft);
+    background:#1d1329;border:1px solid var(--card-edge);border-radius:20px;
+    padding:7px 14px;cursor:pointer;transition:.15s;}
+  .demo-bar button:active{transform:scale(.96);}
+  .demo-bar button.on{background:var(--violet-deep);color:#fff;border-color:var(--violet);}
+
+  @keyframes rise{to{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes slide{to{background-position:200% 0;}}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(1.5);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fall{to{opacity:1;transform:translateY(560px) rotate(540deg);}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>Cue 챌린지</div>
+    <div id="root" class="card">
+      <div class="ribbon"></div>
+      <div class="state-msg"><div class="spinner"></div>불러오는 중…</div>
+    </div>
+
+    <!-- 데모 전환 (배포 시 자동으로 사라짐) -->
+    <div class="demo-bar" id="demoBar" style="display:none">
+      <span>미리보기:</span>
+      <button data-s="active" class="on">진행중</button>
+      <button data-s="success">성공</button>
+      <button data-s="failed">실패</button>
+    </div>
+  </div>
+
+<script>
+/* =========================================================
+   CONFIG — 배포할 때 여기만 채우세요
+   ========================================================= */
+const CONFIG = {
+  SUPABASE_URL : "https://tcgaefftchfjvnpbhaxj.supabase.co",
+  SUPABASE_ANON_KEY : "",          // ← 여기에 anon(공개) 키 붙여넣기
+  LAUNCHED : false,                // ← 앱 실제 출시한 날 true 로 변경하면 버튼 켜짐
+  STORE_URL_IOS : "https://apps.apple.com/app/id6772021040",
+  STORE_URL_ANDROID : "",          // ← 안드로이드 출시일에 Play Store 링크
+};
+
+/* 토큰: cue-challenge.../?c=xxxx  또는  /xxxx */
+function getToken(){
+  const q = new URLSearchParams(location.search).get("c");
+  if(q) return q;
+  const p = location.pathname.replace(/\//g,"");
+  return p && p!=="index.html" ? p : null;
+}
+
+/* ---- 데모용 가짜 데이터 ---- */
+const DEMO = {
+  active:{nickname:"지형",title:"글쓰기 습관 챌린지",goal_title:"글쓰기 습관 만들기",
+    gift:"밥 🍚",recipient_name:"민준",target_days:3,period_days:7,current_progress:2,
+    start_date:"2026-06-03",deadline:new Date(Date.now()+1000*60*60*51).toISOString(),status:"active",result:null,
+    logs:[{date:"2026-06-03",note:"아침에 500자 글 하나 완성"},{date:"2026-06-04",note:"어제 쓴 글 퇴고 + 새 주제 메모"}]},
+  success:{nickname:"지형",title:"글쓰기 습관 챌린지",goal_title:"글쓰기 습관 만들기",
+    gift:"밥 🍚",recipient_name:"민준",target_days:3,period_days:7,current_progress:3,
+    start_date:"2026-06-03",deadline:new Date(Date.now()-1000*60*60*5).toISOString(),status:"finished",result:"success",
+    logs:[{date:"2026-06-03",note:"500자 글 완성"},{date:"2026-06-04",note:"퇴고하고 블로그 발행"},{date:"2026-06-05",note:null}]},
+  failed:{nickname:"지형",title:"글쓰기 습관 챌린지",goal_title:"글쓰기 습관 만들기",
+    gift:"밥 🍚",recipient_name:"민준",target_days:3,period_days:7,current_progress:1,
+    start_date:"2026-06-03",deadline:new Date(Date.now()-1000*60*60*5).toISOString(),status:"finished",result:"failed",
+    logs:[{date:"2026-06-03",note:"딱 5분 끄적이다 말았다 ㅋㅋ"}]},
+};
+
+let timerInterval=null;
+
+async function fetchStatus(token){
+  const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/get_challenge_status`,{
+    method:"POST",
+    headers:{
+      "apikey":CONFIG.SUPABASE_ANON_KEY,
+      "Authorization":`Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      "Content-Type":"application/json",
+    },
+    body:JSON.stringify({p_share_token:token}),
+  });
+  if(!r.ok) throw new Error("fetch failed");
+  return await r.json();
+}
+
+function fmtCount(n){return n<10?"0"+n:""+n;}
+
+function render(d){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  const root=document.getElementById("root");
+  if(!d){
+    root.className="card";
+    root.innerHTML=`<div class="ribbon"></div>
+      <div class="state-msg">🔍<br><br>존재하지 않는 챌린지예요.<br>링크를 다시 확인해 주세요.</div>`;
+    return;
+  }
+
+  const avatarChar=(d.nickname||"?").trim().charAt(0);
+  const pct=Math.min(100,Math.round((d.current_progress/d.target_days)*100));
+
+  // 공통 상단
+  let html=`<div class="ribbon"></div>
+    <div class="who">
+      <div class="avatar">${avatarChar}</div>
+      <div>
+        <h1>${escapeHtml(d.nickname)}님의 챌린지</h1>
+        <p>${d.result?("종료됨 · "+escapeHtml(d.goal_title)):
+          `<span class="live"><span class="pulse"></span>LIVE</span> · ${escapeHtml(d.goal_title)}`}</p>
+      </div>
+    </div>
+    <div class="stake">못 채우면 <b>${escapeHtml(d.recipient_name)}</b>님에게 <b>${escapeHtml(d.gift)}</b> 쏘기로 약속했어요</div>`;
+
+  if(d.result==="success"){
+    root.className="card win";
+    html+=`<div class="result">
+      <div class="big">약속 지킴 🎉</div>
+      <div class="sub"><b>${escapeHtml(d.nickname)}</b>님이 ${d.target_days}일을 다 채웠어요!<br>밥은 안 사도 됩니다 😎</div>
+    </div>
+    <div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>`;
+  }else if(d.result==="failed"){
+    root.className="card lose";
+    html+=`<div class="result">
+      <div class="big">졌어요 💀</div>
+      <div class="sub">${d.target_days}일 중 <b>${d.current_progress}일</b>밖에 못 했어요.<br><b>${escapeHtml(d.recipient_name)}</b>님, ${escapeHtml(d.gift)} 받으실 차례 👀</div>
+    </div>
+    <div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>`;
+  }else{
+    root.className="card";
+    html+=`<div class="hero">
+      <div class="count">${d.current_progress}<span class="of"> / ${d.target_days}일</span></div>
+      <div class="count-label">목표까지 ${Math.max(0,d.target_days-d.current_progress)}일 남음</div>
+    </div>
+    <div class="bar">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="ticks"><span>시작</span><span>목표 ${d.target_days}일</span></div>
+    </div>
+    <div class="timer" id="timer"></div>
+    <div class="timer-label">마감까지 남은 시간</div>`;
+  }
+
+  // 인증 일지
+  if(Array.isArray(d.logs) && d.logs.length){
+    html+=`<div class="logs"><div class="logs-h">📓 인증 일지</div>`;
+    d.logs.forEach(l=>{
+      const dt=new Date(l.date);
+      const md=`${dt.getMonth()+1}/${dt.getDate()}`;
+      html+=`<div class="log-row"><span class="log-date">${md}</span><span class="log-note">${l.note?escapeHtml(l.note):'<i>완료 ✓</i>'}</span></div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // CTA
+  const store=CONFIG.STORE_URL_IOS||CONFIG.STORE_URL_ANDROID;
+  if(CONFIG.LAUNCHED && store){
+    html+=`<button class="cta" onclick="location.href='${store}'">나도 챌린지 시작하기 →</button>`;
+  }else{
+    html+=`<button class="cta soon">Cue 앱 · 곧 출시돼요 🚀</button>`;
+  }
+  html+=`<div class="foot">목표만 말하면 AI가 매일 할 일을 정해주는 앱, Cue</div>`;
+
+  root.innerHTML=html;
+
+  // 진행바 애니메이션
+  requestAnimationFrame(()=>{const f=document.getElementById("fill");if(f)f.style.width=pct+"%";});
+
+  // 카운트다운
+  if(!d.result){startTimer(new Date(d.deadline));}
+  // 성공 시 컨페티
+  if(d.result==="success"){confetti(root);}
+}
+
+function startTimer(deadline){
+  const el=document.getElementById("timer");
+  if(!el)return;
+  function tick(){
+    let diff=Math.max(0,deadline-new Date());
+    const dd=Math.floor(diff/86400000);
+    const hh=Math.floor(diff%86400000/3600000);
+    const mm=Math.floor(diff%3600000/60000);
+    const ss=Math.floor(diff%60000/1000);
+    el.innerHTML=`
+      <div class="seg"><div class="num">${fmtCount(dd)}</div><div class="unit">일</div></div>
+      <div class="seg"><div class="num">${fmtCount(hh)}</div><div class="unit">시간</div></div>
+      <div class="seg"><div class="num">${fmtCount(mm)}</div><div class="unit">분</div></div>
+      <div class="seg"><div class="num">${fmtCount(ss)}</div><div class="unit">초</div></div>`;
+  }
+  tick();
+  timerInterval=setInterval(tick,1000);
+}
+
+function confetti(parent){
+  const colors=["#a855f7","#c084fc","#34d399","#fcd34d","#fff"];
+  for(let i=0;i<28;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"%";
+    c.style.background=colors[i%colors.length];
+    c.style.animation=`fall ${1.4+Math.random()*1.2}s ${Math.random()*.5}s ease-in forwards`;
+    parent.appendChild(c);
+  }
+}
+
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+
+/* ---- 부팅 ---- */
+const token=getToken();
+const isDemo = !token || !CONFIG.SUPABASE_ANON_KEY;
+
+if(isDemo){
+  // 데모 모드: 가짜 데이터로 화면 미리보기
+  document.getElementById("demoBar").style.display="flex";
+  render(DEMO.active);
+  document.querySelectorAll(".demo-bar button").forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll(".demo-bar button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      render(DEMO[b.dataset.s]);
+    };
+  });
+}else{
+  fetchStatus(token).then(render).catch(()=>render(null));
+}
+</script>
+</body>
+</html>
