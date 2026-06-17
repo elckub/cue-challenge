@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Cue 챌린지</title>
+<title>nudge 챌린지</title>
 
 <!-- ===== 카카오톡 공유 미리보기(OG) ===== -->
 <meta property="og:title" content="친구가 약속을 걸었어요 🎯" />
-<meta property="og:description" content="지금 몇 일 했는지 실시간으로 보기 — Cue 챌린지" />
+<meta property="og:description" content="지금 몇 일 했는지 실시간으로 보기 — nudge 챌린지" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://elckub.github.io/cue-challenge/og.png" />
+<meta property="og:image" content="https://elckub.github.io/nudge-challenge/og.png" />
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -197,7 +197,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="brand"><span class="dot"></span>Cue 챌린지</div>
+    <div class="brand"><span class="dot"></span>nudge 챌린지</div>
     <div id="root" class="card">
       <div class="ribbon"></div>
       <div class="state-msg"><div class="spinner"></div>불러오는 중…</div>
@@ -224,7 +224,7 @@ const CONFIG = {
   STORE_URL_ANDROID : "",          // ← 안드로이드 출시일에 Play Store 링크
 };
 
-/* 토큰: cue-challenge.../?c=xxxx  또는  /xxxx */
+/* 토큰: nudge-challenge.../?c=xxxx  또는  /xxxx */
 function getToken(){
   const q = new URLSearchParams(location.search).get("c");
   if(q) return q;
@@ -335,9 +335,9 @@ function render(d){
   if(CONFIG.LAUNCHED && store){
     html+=`<button class="cta" onclick="location.href='${store}'">나도 챌린지 시작하기 →</button>`;
   }else{
-    html+=`<button class="cta soon">Cue 앱 · 곧 출시돼요 🚀</button>`;
+    html+=`<button class="cta soon">nudge 앱 · 곧 출시돼요 🚀</button>`;
   }
-  html+=`<div class="foot">목표만 말하면 AI가 매일 할 일을 정해주는 앱, Cue</div>`;
+  html+=`<div class="foot">목표만 말하면 AI가 매일 할 일을 정해주는 앱, nudge</div>`;
 
   root.innerHTML=html;
 
